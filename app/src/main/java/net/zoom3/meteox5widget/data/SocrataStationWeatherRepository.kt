@@ -7,15 +7,20 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
 /**
- * Lee las lecturas de la XEMA para una estación desde los datasets abiertos
- * de Socrata (analisi.transparenciacatalunya.cat), que no requieren la API
- * key oficial de Meteocat (pendiente de aprobación):
- * - nzvn-apee: lecturas cada 30 min (precipitación del intervalo, temperatura, humedad, viento).
- * - 7bvh-jvq2: agregados diarios (precipitación acumulada del último día ya cerrado).
+ * Lee las lecturas de la XEMA para una estación desde el dataset abierto de
+ * Socrata (analisi.transparenciacatalunya.cat/resource/nzvn-apee), lecturas
+ * cada 30 min: precipitación del intervalo, temperatura, humedad y viento.
+ * No requiere la API key oficial de Meteocat (pendiente de aprobación).
+ *
+ * El acumulado de "hoy" se calcula sumando esas mismas lecturas de intervalo
+ * desde la medianoche local, en vez de usar el producto diario certificado
+ * de Meteocat (que se publica con 1-2 días de retraso).
  */
 class SocrataStationWeatherRepository(
     private val stationCode: String = "X5",
@@ -24,7 +29,7 @@ class SocrataStationWeatherRepository(
 
     override suspend fun getLatestWeather(): StationWeatherData = withContext(Dispatchers.IO) {
         val interval = fetchLatestInterval()
-        val daily = fetchLatestDailyAccumulated()
+        val todayAccumulatedMm = fetchTodayAccumulated()
 
         StationWeatherData(
             stationCode = stationCode,
@@ -35,8 +40,7 @@ class SocrataStationWeatherRepository(
             windSpeedMs = interval.windSpeedMs,
             windDirectionDeg = interval.windDirectionDeg,
             measuredAtEpochMillis = interval.measuredAtEpochMillis,
-            dailyAccumulatedMm = daily?.first,
-            dailyAccumulatedDateEpochMillis = daily?.second
+            todayAccumulatedMm = todayAccumulatedMm
         )
     }
 
@@ -74,22 +78,23 @@ class SocrataStationWeatherRepository(
         return IntervalReading(precipitationMm, temperatureC, humidityPct, windSpeedMs, windDirectionDeg, measuredAtEpochMillis)
     }
 
-    /** Devuelve (mm acumulados, fecha del día al que corresponde) o null si no se pudo leer. */
-    private fun fetchLatestDailyAccumulated(): Pair<Double?, Long?>? {
+    /** Suma la precipitación (codi_variable 35) de todos los intervalos desde la medianoche local. */
+    private fun fetchTodayAccumulated(): Double? {
         return try {
-            val where = "codi_estacio='$stationCode' AND codi_variable='1300'"
+            val midnightUtcIso = formatUtcIso(startOfTodayEpochMillis())
+            val where = "codi_estacio='$stationCode' AND codi_variable='35' AND data_lectura >= '$midnightUtcIso'"
             val query = "\$where=${URLEncoder.encode(where, "UTF-8")}" +
-                "&\$order=${URLEncoder.encode("data_lectura DESC", "UTF-8")}" +
-                "&\$limit=1"
-            val records = JSONArray(fetchBody("$DAILY_BASE_URL?$query"))
-            if (records.length() == 0) return null
+                "&\$order=${URLEncoder.encode("data_lectura ASC", "UTF-8")}" +
+                "&\$limit=100"
+            val records = JSONArray(fetchBody("$INTERVAL_BASE_URL?$query"))
 
-            val record = records.getJSONObject(0)
-            val value = record.optString("valor").toDoubleOrNull()
-            val date = parseIsoDateTime(record.optString("data_lectura"))
-            value to date
+            var sum = 0.0
+            for (i in 0 until records.length()) {
+                sum += records.getJSONObject(i).optString("valor_lectura").toDoubleOrNull() ?: 0.0
+            }
+            sum
         } catch (e: Exception) {
-            // Un fallo en el dataset diario no debe tumbar el resto del widget.
+            // Un fallo en este cálculo no debe tumbar el resto del widget.
             null
         }
     }
@@ -104,6 +109,21 @@ class SocrataStationWeatherRepository(
         } finally {
             connection.disconnect()
         }
+    }
+
+    private fun startOfTodayEpochMillis(): Long {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.timeInMillis
+    }
+
+    private fun formatUtcIso(epochMillis: Long): String {
+        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
+        format.timeZone = TimeZone.getTimeZone("UTC")
+        return format.format(Date(epochMillis))
     }
 
     /** Socrata devuelve data_lectura en UTC, sin offset explícito en el string. */
@@ -128,6 +148,5 @@ class SocrataStationWeatherRepository(
 
     companion object {
         private const val INTERVAL_BASE_URL = "https://analisi.transparenciacatalunya.cat/resource/nzvn-apee.json"
-        private const val DAILY_BASE_URL = "https://analisi.transparenciacatalunya.cat/resource/7bvh-jvq2.json"
     }
 }

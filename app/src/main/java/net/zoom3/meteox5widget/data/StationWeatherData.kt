@@ -9,7 +9,6 @@ data class StationWeatherData(
     val windSpeedMs: Double?,
     val windDirectionDeg: Double?,
     val measuredAtEpochMillis: Long,
-    /** Precipitación acumulada del último día ya cerrado (suele ir 1-2 días por detrás). */
-    val dailyAccumulatedMm: Double?,
-    val dailyAccumulatedDateEpochMillis: Long?
+    /** Suma de las precipitaciones de intervalo desde la medianoche local; null si no se pudo calcular. */
+    val todayAccumulatedMm: Double?
 )

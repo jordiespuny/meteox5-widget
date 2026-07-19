@@ -2,29 +2,30 @@
 
 Widget para Android que muestra el tiempo en tiempo real de la estación XEMA **X5 · PN dels Ports**
 (Servei Meteorològic de Catalunya, [meteo.cat](https://www.meteo.cat/observacions/xema/dades?codi=X5)):
-precipitación (del intervalo actual y acumulada del último día cerrado), temperatura, humedad y viento.
+precipitación (del intervalo actual y acumulada de hoy), temperatura, humedad y viento.
 
 ## Estado actual
 
-Usa `SocrataStationWeatherRepository`, que lee dos datasets abiertos del
-portal de dades obertes de la Generalitat (Socrata) — no requieren la API
-key oficial de Meteocat (cuyo alta tarda ~7 días en aprobarse), pero son una
-solución provisional: no hay garantía de SLA ni de que se mantengan igual a
+Usa `SocrataStationWeatherRepository`, que lee el dataset abierto **`nzvn-apee`**
+("Dades meteorològiques de la XEMA", lecturas cada 30 min) del portal de
+dades obertes de la Generalitat (Socrata) — no requiere la API key oficial
+de Meteocat (cuyo alta tarda ~7 días en aprobarse), pero es una solución
+provisional: no hay garantía de SLA ni de que el dataset se mantenga igual a
 largo plazo.
 
-- **`nzvn-apee`** — lecturas cada 30 min. Variables usadas (`codi_variable`):
+Variables usadas (`codi_variable`):
 
-  | Código | Variable | Unidad |
-  |---|---|---|
-  | 35 | Precipitació (del intervalo de 30 min, no acumulado diario) | mm |
-  | 32 | Temperatura | °C |
-  | 33 | Humitat relativa | % |
-  | 30 + 31 | Velocitat i direcció del vent a 10 m | m/s, ° |
+| Código | Variable | Unidad |
+|---|---|---|
+| 35 | Precipitació (del intervalo de 30 min) | mm |
+| 32 | Temperatura | °C |
+| 33 | Humitat relativa | % |
+| 30 + 31 | Velocitat i direcció del vent a 10 m | m/s, ° |
 
-- **`7bvh-jvq2`** — agregados diarios. Variable `1300` = "Precipitació
-  acumulada diària". Ojo: este dataset va con **1-2 días de retraso** (el día
-  no se cierra hasta medianoche), así que el widget lo etiqueta con la fecha
-  real a la que corresponde el dato en vez de asumir "ayer".
+El acumulado de "Hoy" **no** usa el producto diario certificado de Meteocat
+(que se publica con 1-2 días de retraso) — se calcula sumando nosotros mismos
+las lecturas de la variable 35 desde la medianoche local, así que tiene la
+misma frescura (~30-60 min) que el resto de datos.
 
 Cuando llegue la API key oficial de Meteocat, migrar a
 `https://apidocs.meteocat.gencat.cat` (mismos códigos de variable) creando

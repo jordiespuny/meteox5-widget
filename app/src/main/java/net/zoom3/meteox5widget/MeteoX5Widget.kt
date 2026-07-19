@@ -40,7 +40,6 @@ class MeteoX5Widget : AppWidgetProvider() {
 
     companion object {
         private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        private val dayFormat = SimpleDateFormat("d MMM", Locale("es", "ES"))
         private val compassPoints = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
 
         fun updateWidgets(
@@ -61,13 +60,8 @@ class MeteoX5Widget : AppWidgetProvider() {
                     formatPrecipitation(context, data.precipitationMm)
                 )
                 views.setTextViewText(
-                    R.id.widget_precipitation_daily_label,
-                    data.dailyAccumulatedDateEpochMillis?.let { dayFormat.format(Date(it)) }
-                        ?: context.getString(R.string.label_daily_fallback)
-                )
-                views.setTextViewText(
-                    R.id.widget_precipitation_daily,
-                    formatPrecipitation(context, data.dailyAccumulatedMm)
+                    R.id.widget_precipitation_today,
+                    formatPrecipitation(context, data.todayAccumulatedMm)
                 )
                 views.setTextViewText(R.id.widget_temperature, formatTemperature(context, data.temperatureC))
                 views.setTextViewText(R.id.widget_humidity, formatHumidity(context, data.humidityPct))

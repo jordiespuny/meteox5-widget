@@ -8,7 +8,7 @@
     <string name="wind_value">%1$.0f km/h %2$s</string>
     <string name="wind_value_no_direction">%1$.0f km/h</string>
     <string name="label_now">Ahora</string>
-    <string name="label_daily_fallback">Día ant.</string>
+    <string name="label_today">Hoy</string>
     <string name="label_temperature">Temp</string>
     <string name="label_humidity">Humedad</string>
     <string name="label_wind">Viento</string>

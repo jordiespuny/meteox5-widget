@@ -1,7 +1,5 @@
 package net.zoom3.meteox5widget.data
 
-import java.util.concurrent.TimeUnit
-
 /** Datos de ejemplo, útiles para desarrollar sin depender de la red. */
 class MockStationWeatherRepository(
     private val stationCode: String = "X5",
@@ -18,8 +16,7 @@ class MockStationWeatherRepository(
             windSpeedMs = (0..120).random() / 10.0,
             windDirectionDeg = (0..359).random().toDouble(),
             measuredAtEpochMillis = System.currentTimeMillis(),
-            dailyAccumulatedMm = (0..150).random() / 10.0,
-            dailyAccumulatedDateEpochMillis = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2)
+            todayAccumulatedMm = (0..150).random() / 10.0
         )
     }
 }
