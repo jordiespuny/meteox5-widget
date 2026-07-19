@@ -106,10 +106,11 @@ class SocrataStationWeatherRepository(
         }
     }
 
+    /** Socrata devuelve data_lectura en UTC, sin offset explícito en el string. */
     private fun parseIsoDateTime(raw: String): Long? {
         return try {
             val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-            format.timeZone = TimeZone.getTimeZone("Europe/Madrid")
+            format.timeZone = TimeZone.getTimeZone("UTC")
             format.parse(raw)?.time
         } catch (e: Exception) {
             null
