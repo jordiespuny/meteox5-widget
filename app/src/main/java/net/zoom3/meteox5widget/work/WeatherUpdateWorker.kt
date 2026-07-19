@@ -9,8 +9,10 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import net.zoom3.meteox5widget.MeteoX5Widget
+import net.zoom3.meteox5widget.data.RainAlertState
 import net.zoom3.meteox5widget.data.SocrataStationWeatherRepository
 import net.zoom3.meteox5widget.data.StationWeatherRepository
+import net.zoom3.meteox5widget.notification.RainAlertNotifier
 import java.util.concurrent.TimeUnit
 
 class WeatherUpdateWorker(
@@ -26,6 +28,15 @@ class WeatherUpdateWorker(
         } catch (e: Exception) {
             // Sin red o servicio caído: lo reintenta WorkManager con backoff, el widget conserva el último valor.
             return Result.retry()
+        }
+
+        data.precipitationMm?.let { current ->
+            val alertState = RainAlertState(applicationContext)
+            val previous = alertState.lastPrecipitationMm()
+            if (previous <= 0.0 && current > 0.0) {
+                RainAlertNotifier.notifyRainStarted(applicationContext, current)
+            }
+            alertState.save(current)
         }
 
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)

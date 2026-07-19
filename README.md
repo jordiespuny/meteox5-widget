@@ -33,17 +33,30 @@ y sustituyéndola en `MeteoX5Widget` y `WeatherUpdateWorker`. La API key debe
 guardarse en `local.properties` (no se sube a git) y exponerse vía
 `BuildConfig`, nunca hardcodeada en el código fuente.
 
+## Aviso sonoro de inicio de lluvia
+
+Cuando la precipitación del intervalo pasa de 0 mm a más de 0 mm (respecto a
+la última lectura conocida), `WeatherUpdateWorker` dispara una notificación
+con un sonido propio (`res/raw/rain_start.wav`, tres "gotas" sintetizadas).
+Solo avisa en la transición 0 → lluvia, no en cada lectura con lluvia.
+
+En Android 13+ hace falta conceder el permiso de notificaciones, que se pide
+la primera vez que se abre la app (`MainActivity`).
+
 ## Estructura
 
 ```
 app/src/main/java/net/zoom3/meteox5widget/
-├── MainActivity.kt                       Activity mínima (host de la app del widget)
+├── MainActivity.kt                       Activity mínima (host de la app + permiso de notificaciones)
 ├── MeteoX5Widget.kt                       AppWidgetProvider: pinta el RemoteViews del widget
 ├── data/
 │   ├── StationWeatherData.kt              Modelo de datos
 │   ├── StationWeatherRepository.kt        Interfaz de acceso a datos
 │   ├── SocrataStationWeatherRepository.kt Implementación real (dades obertes, Socrata)
-│   └── MockStationWeatherRepository.kt    Implementación de ejemplo (datos aleatorios)
+│   ├── MockStationWeatherRepository.kt    Implementación de ejemplo (datos aleatorios)
+│   └── RainAlertState.kt                  Recuerda la última precipitación para detectar 0 -> >0
+├── notification/
+│   └── RainAlertNotifier.kt               Canal + notificación con sonido de "empieza a llover"
 └── work/
     └── WeatherUpdateWorker.kt             WorkManager: refresca el widget cada 30 min
 ```
