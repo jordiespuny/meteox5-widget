@@ -44,6 +44,19 @@ Solo avisa en la transición 0 → lluvia, no en cada lectura con lluvia.
 En Android 13+ hace falta conceder el permiso de notificaciones, que se pide
 la primera vez que se abre la app (`MainActivity`).
 
+## Nunca se pintan datos inventados
+
+`onUpdate()` no pinta ningún dato mientras espera al primero real: encola un
+`WorkManager` inmediato (`WeatherUpdateWorker.requestImmediateUpdate`) y hasta
+que ese trabajo no termina, el widget se queda con el placeholder ("-- mm")
+del layout. Antes se pintaba un dato de ejemplo aleatorio como primer
+pantallazo, pero como el sistema puede volver a llamar a `onUpdate()` en
+cualquier momento (algunos launchers lo hacen al desbloquear el móvil), eso
+podía dejar visible un número inventado con pinta de dato real si la
+actualización real tardaba. `schedulePeriodic` también pasó de
+`ExistingPeriodicWorkPolicy.UPDATE` a `KEEP`, para no reiniciar el ciclo de
+30 min cada vez que `onUpdate()` se repite.
+
 ## Estructura
 
 ```
@@ -54,7 +67,6 @@ app/src/main/java/net/zoom3/meteox5widget/
 │   ├── StationWeatherData.kt              Modelo de datos
 │   ├── StationWeatherRepository.kt        Interfaz de acceso a datos
 │   ├── SocrataStationWeatherRepository.kt Implementación real (dades obertes, Socrata)
-│   ├── MockStationWeatherRepository.kt    Implementación de ejemplo (datos aleatorios)
 │   └── RainAlertState.kt                  Recuerda la última precipitación para detectar 0 -> >0
 ├── notification/
 │   └── RainAlertNotifier.kt               Canal + notificación con sonido de "empieza a llover"

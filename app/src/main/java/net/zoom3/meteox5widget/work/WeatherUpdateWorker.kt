@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -52,13 +53,21 @@ class WeatherUpdateWorker(
         const val WORK_NAME = "weather_update_x5"
 
         // La XEMA publica lecturas cada 30 min; alineamos la cadencia del worker con esa frecuencia.
+        // KEEP: si ya hay un ciclo periódico en marcha, no lo reiniciamos cada vez que el sistema
+        // vuelve a llamar a onUpdate() (p. ej. al desbloquear el móvil en algunos launchers).
         fun schedulePeriodic(context: Context) {
             val request = PeriodicWorkRequestBuilder<WeatherUpdateWorker>(30, TimeUnit.MINUTES).build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
+                ExistingPeriodicWorkPolicy.KEEP,
                 request
             )
+        }
+
+        /** Pide un dato real cuanto antes (p. ej. al añadir el widget), sin esperar al ciclo de 30 min. */
+        fun requestImmediateUpdate(context: Context) {
+            val request = OneTimeWorkRequestBuilder<WeatherUpdateWorker>().build()
+            WorkManager.getInstance(context).enqueue(request)
         }
     }
 }

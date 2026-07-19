@@ -5,11 +5,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.widget.RemoteViews
 import androidx.work.WorkManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import net.zoom3.meteox5widget.data.MockStationWeatherRepository
 import net.zoom3.meteox5widget.data.StationWeatherData
 import net.zoom3.meteox5widget.work.WeatherUpdateWorker
 import java.text.SimpleDateFormat
@@ -20,14 +15,10 @@ import kotlin.math.roundToInt
 class MeteoX5Widget : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        // Nunca pintamos datos inventados: hasta que llegue el primer dato real,
+        // el widget se queda con el placeholder ("-- mm") definido en el layout.
         WeatherUpdateWorker.schedulePeriodic(context)
-        // Pintado inmediato con datos de ejemplo; el worker sustituye por datos reales enseguida.
-        CoroutineScope(Dispatchers.IO).launch {
-            val data = MockStationWeatherRepository().getLatestWeather()
-            withContext(Dispatchers.Main) {
-                updateWidgets(context, appWidgetManager, appWidgetIds, data)
-            }
-        }
+        WeatherUpdateWorker.requestImmediateUpdate(context)
     }
 
     override fun onEnabled(context: Context) {
