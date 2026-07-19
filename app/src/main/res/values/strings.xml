@@ -20,4 +20,5 @@
     <string name="rain_alert_channel_description">Aviso cuando la estación X5 pasa de 0 mm a lluvia detectada</string>
     <string name="rain_alert_title">🌧️ Empieza a llover en X5</string>
     <string name="rain_alert_text">%.1f mm en el último intervalo</string>
+    <string name="test_rain_alert_button">🔔 Probar aviso de lluvia</string>
 </resources>

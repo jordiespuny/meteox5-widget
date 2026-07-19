@@ -21,4 +21,11 @@
         android:textSize="14sp"
         android:text="@string/main_activity_message" />
 
+    <Button
+        android:id="@+id/btn_test_rain_alert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/test_rain_alert_button" />
+
 </LinearLayout>
