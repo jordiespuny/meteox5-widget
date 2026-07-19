@@ -1,8 +1,18 @@
 <resources>
     <string name="app_name">Meteo X5 Widget</string>
-    <string name="widget_description">Pluviometría en tiempo real de la estación X5 (meteo.cat)</string>
+    <string name="widget_description">Temps real de la estación X5 (meteo.cat): pluviometría, temperatura, humedad y viento</string>
+    <string name="station_label">%1$s · %2$s</string>
     <string name="precipitation_value">%.1f mm</string>
+    <string name="temperature_value">%.1f°C</string>
+    <string name="humidity_value">%.0f%%</string>
+    <string name="wind_value">%1$.0f km/h %2$s</string>
+    <string name="wind_value_no_direction">%1$.0f km/h</string>
+    <string name="label_now">Ahora</string>
+    <string name="label_daily_fallback">Día ant.</string>
+    <string name="label_temperature">Temp</string>
+    <string name="label_humidity">Humedad</string>
+    <string name="label_wind">Viento</string>
     <string name="updated_at">Actualizado %1$s</string>
     <string name="main_activity_title">Meteo X5 Widget</string>
-    <string name="main_activity_message">Añade el widget "Meteo X5" a la pantalla de inicio para ver la pluviometría de la estación X5.\n\nEsta versión muestra datos de ejemplo mientras se activa el acceso a la API oficial de Meteocat.</string>
+    <string name="main_activity_message">Añade el widget "Meteo X5" a la pantalla de inicio para ver el tiempo en tiempo real de la estación X5: lluvia, temperatura, humedad y viento.\n\nLos datos vienen del portal de dades obertes de la Generalitat (Socrata), como solución provisional mientras se activa el acceso a la API oficial de Meteocat.</string>
 </resources>
