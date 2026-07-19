@@ -38,8 +38,14 @@ guardarse en `local.properties` (no se sube a git) y exponerse vía
 
 Cuando la precipitación del intervalo pasa de 0 mm a más de 0 mm (respecto a
 la última lectura conocida), `WeatherUpdateWorker` dispara una notificación
-con un sonido propio (`res/raw/rain_start.wav`, tres "gotas" sintetizadas).
+con un sonido propio (`res/raw/rain_start.mp3`, grabación propia de ~15s).
 Solo avisa en la transición 0 → lluvia, no en cada lectura con lluvia.
+
+Si alguna vez se cambia `rain_start.mp3` por otro archivo, hay que subir
+también el `CHANNEL_ID` en `RainAlertNotifier` (p. ej. de `_v2` a `_v3`):
+Android fija el sonido de un canal de notificación en el momento en que se
+crea y no permite cambiarlo después, así que reutilizar el mismo ID con un
+sonido distinto no tendría efecto en los móviles donde el canal ya existe.
 
 En Android 13+ hace falta conceder el permiso de notificaciones, que se pide
 la primera vez que se abre la app (`MainActivity`).
