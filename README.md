@@ -63,6 +63,16 @@ actualización real tardaba. `schedulePeriodic` también pasó de
 `ExistingPeriodicWorkPolicy.UPDATE` a `KEEP`, para no reiniciar el ciclo de
 30 min cada vez que `onUpdate()` se repite.
 
+## Botón de actualizar
+
+Android retrasa el `WorkManager` periódico por ahorro de batería, así que a
+veces el widget muestra datos de hace horas (sobre todo tras desbloquear el
+móvil). Para no depender solo del ciclo automático hay un pequeño icono de
+recargar en la esquina superior derecha: al tocarlo, `onReceive()` recibe la
+acción `ACTION_REFRESH` y encola un `requestImmediateUpdate` que trae el dato
+al momento. El `PendingIntent` del botón se adjunta en `updateWidgets`, así
+que queda activo en cuanto llega el primer dato real.
+
 ## Estructura
 
 ```

@@ -1,8 +1,11 @@
 package net.zoom3.meteox5widget
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.widget.RemoteViews
 import androidx.work.WorkManager
 import net.zoom3.meteox5widget.data.StationWeatherData
@@ -21,6 +24,13 @@ class MeteoX5Widget : AppWidgetProvider() {
         WeatherUpdateWorker.requestImmediateUpdate(context)
     }
 
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == ACTION_REFRESH) {
+            WeatherUpdateWorker.requestImmediateUpdate(context)
+        }
+    }
+
     override fun onEnabled(context: Context) {
         WeatherUpdateWorker.schedulePeriodic(context)
     }
@@ -30,8 +40,22 @@ class MeteoX5Widget : AppWidgetProvider() {
     }
 
     companion object {
+        private const val ACTION_REFRESH = "net.zoom3.meteox5widget.ACTION_REFRESH"
         private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         private val compassPoints = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
+
+        private fun refreshPendingIntent(context: Context): PendingIntent {
+            val intent = Intent(context, MeteoX5Widget::class.java).apply {
+                action = ACTION_REFRESH
+                component = ComponentName(context, MeteoX5Widget::class.java)
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
 
         fun updateWidgets(
             context: Context,
@@ -41,6 +65,8 @@ class MeteoX5Widget : AppWidgetProvider() {
         ) {
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_x5)
+
+                views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(context))
 
                 views.setTextViewText(
                     R.id.widget_station_name,
