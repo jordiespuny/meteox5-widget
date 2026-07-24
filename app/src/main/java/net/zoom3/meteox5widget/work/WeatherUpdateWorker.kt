@@ -13,6 +13,7 @@ import net.zoom3.meteox5widget.MeteoX5Widget
 import net.zoom3.meteox5widget.data.RainAlertState
 import net.zoom3.meteox5widget.data.SocrataStationWeatherRepository
 import net.zoom3.meteox5widget.data.StationWeatherRepository
+import net.zoom3.meteox5widget.data.WeatherCache
 import net.zoom3.meteox5widget.notification.RainAlertNotifier
 import java.util.concurrent.TimeUnit
 
@@ -39,6 +40,8 @@ class WeatherUpdateWorker(
             }
             alertState.save(current)
         }
+
+        WeatherCache(applicationContext).save(data)
 
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
         val ids = appWidgetManager.getAppWidgetIds(

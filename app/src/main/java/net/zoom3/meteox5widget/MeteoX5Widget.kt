@@ -9,6 +9,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import androidx.work.WorkManager
 import net.zoom3.meteox5widget.data.StationWeatherData
+import net.zoom3.meteox5widget.data.WeatherCache
 import net.zoom3.meteox5widget.work.WeatherUpdateWorker
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -18,8 +19,13 @@ import kotlin.math.roundToInt
 class MeteoX5Widget : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        // Nunca pintamos datos inventados: hasta que llegue el primer dato real,
-        // el widget se queda con el placeholder ("-- mm") definido en el layout.
+        // Repintamos desde la última lectura cacheada (con el botón de recargar ya
+        // funcional). Si no hay caché, el widget se queda con el placeholder del
+        // layout; nunca pintamos datos inventados. El worker traerá lo más reciente.
+        val cached = WeatherCache(context).load()
+        if (cached != null) {
+            updateWidgets(context, appWidgetManager, appWidgetIds, cached)
+        }
         WeatherUpdateWorker.schedulePeriodic(context)
         WeatherUpdateWorker.requestImmediateUpdate(context)
     }
@@ -27,6 +33,7 @@ class MeteoX5Widget : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_REFRESH) {
+            showRefreshing(context)
             WeatherUpdateWorker.requestImmediateUpdate(context)
         }
     }
@@ -55,6 +62,20 @@ class MeteoX5Widget : AppWidgetProvider() {
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
+        }
+
+        /** Feedback inmediato al tocar el botón: cambia solo la línea de "Actualizado". */
+        private fun showRefreshing(context: Context) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val ids = appWidgetManager.getAppWidgetIds(
+                ComponentName(context, MeteoX5Widget::class.java)
+            )
+            for (appWidgetId in ids) {
+                val views = RemoteViews(context.packageName, R.layout.widget_x5)
+                views.setTextViewText(R.id.widget_updated_at, context.getString(R.string.updating))
+                views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(context))
+                appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+            }
         }
 
         fun updateWidgets(

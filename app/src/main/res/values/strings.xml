@@ -13,6 +13,7 @@
     <string name="label_humidity">Humedad</string>
     <string name="label_wind">Viento</string>
     <string name="updated_at">Actualizado %1$s</string>
+    <string name="updating">Actualizando…</string>
     <string name="refresh_button_description">Actualizar ahora</string>
     <string name="main_activity_title">Meteo X5 Widget</string>
     <string name="main_activity_message">Añade el widget "Meteo X5" a la pantalla de inicio para ver el tiempo en tiempo real de la estación X5: lluvia, temperatura, humedad y viento.\n\nLos datos vienen del portal de dades obertes de la Generalitat (Socrata), como solución provisional mientras se activa el acceso a la API oficial de Meteocat.</string>

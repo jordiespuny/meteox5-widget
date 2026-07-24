@@ -63,15 +63,22 @@ actualización real tardaba. `schedulePeriodic` también pasó de
 `ExistingPeriodicWorkPolicy.UPDATE` a `KEEP`, para no reiniciar el ciclo de
 30 min cada vez que `onUpdate()` se repite.
 
-## Botón de actualizar
+## Botón de actualizar y caché
 
 Android retrasa el `WorkManager` periódico por ahorro de batería, así que a
 veces el widget muestra datos de hace horas (sobre todo tras desbloquear el
 móvil). Para no depender solo del ciclo automático hay un pequeño icono de
 recargar en la esquina superior derecha: al tocarlo, `onReceive()` recibe la
-acción `ACTION_REFRESH` y encola un `requestImmediateUpdate` que trae el dato
-al momento. El `PendingIntent` del botón se adjunta en `updateWidgets`, así
-que queda activo en cuanto llega el primer dato real.
+acción `ACTION_REFRESH`, muestra "Actualizando…" como feedback inmediato y
+encola un `requestImmediateUpdate` que trae el dato al momento.
+
+La última lectura pintada se guarda en `WeatherCache` (SharedPreferences).
+`onUpdate()` repinta desde esa caché —con el botón ya funcional— cada vez que
+el sistema lo llama (desbloqueo, reinicio, reinstalación), sin esperar a que
+el worker termine. Esto arregla dos cosas: el widget ya no parpadea al
+placeholder al desbloquear, y el botón queda operativo aunque el widget se
+haya quedado con un dibujo antiguo (p. ej. tras actualizar la app, cuando el
+`PendingIntent` del botón todavía no se había adjuntado).
 
 ## Estructura
 
@@ -83,7 +90,8 @@ app/src/main/java/net/zoom3/meteox5widget/
 │   ├── StationWeatherData.kt              Modelo de datos
 │   ├── StationWeatherRepository.kt        Interfaz de acceso a datos
 │   ├── SocrataStationWeatherRepository.kt Implementación real (dades obertes, Socrata)
-│   └── RainAlertState.kt                  Recuerda la última precipitación para detectar 0 -> >0
+│   ├── RainAlertState.kt                  Recuerda la última precipitación para detectar 0 -> >0
+│   └── WeatherCache.kt                    Cachea la última lectura para repintar sin esperar red
 ├── notification/
 │   └── RainAlertNotifier.kt               Canal + notificación con sonido de "empieza a llover"
 └── work/
