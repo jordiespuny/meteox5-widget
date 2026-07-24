@@ -23,6 +23,7 @@ class WeatherCache(context: Context) {
             .putFloat(KEY_WIND_DIRECTION, data.windDirectionDeg.toFloatOrNaN())
             .putLong(KEY_MEASURED_AT, data.measuredAtEpochMillis)
             .putFloat(KEY_TODAY_ACCUMULATED, data.todayAccumulatedMm.toFloatOrNaN())
+            .putBoolean(KEY_IS_BACKUP, data.isBackup)
             .apply()
     }
 
@@ -37,7 +38,8 @@ class WeatherCache(context: Context) {
             windSpeedMs = prefs.getFloat(KEY_WIND_SPEED, Float.NaN).toDoubleOrNull(),
             windDirectionDeg = prefs.getFloat(KEY_WIND_DIRECTION, Float.NaN).toDoubleOrNull(),
             measuredAtEpochMillis = prefs.getLong(KEY_MEASURED_AT, System.currentTimeMillis()),
-            todayAccumulatedMm = prefs.getFloat(KEY_TODAY_ACCUMULATED, Float.NaN).toDoubleOrNull()
+            todayAccumulatedMm = prefs.getFloat(KEY_TODAY_ACCUMULATED, Float.NaN).toDoubleOrNull(),
+            isBackup = prefs.getBoolean(KEY_IS_BACKUP, false)
         )
     }
 
@@ -56,5 +58,6 @@ class WeatherCache(context: Context) {
         private const val KEY_WIND_DIRECTION = "wind_direction"
         private const val KEY_MEASURED_AT = "measured_at"
         private const val KEY_TODAY_ACCUMULATED = "today_accumulated"
+        private const val KEY_IS_BACKUP = "is_backup"
     }
 }

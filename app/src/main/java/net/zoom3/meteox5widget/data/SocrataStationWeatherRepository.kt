@@ -21,30 +21,55 @@ import java.util.TimeZone
  * El acumulado de "hoy" se calcula sumando esas mismas lecturas de intervalo
  * desde la medianoche local, en vez de usar el producto diario certificado
  * de Meteocat (que se publica con 1-2 días de retraso).
+ *
+ * Si la estación principal (X5 · PN dels Ports) no tiene datos frescos —p. ej.
+ * porque ha caído— se recurre a una estación de respaldo cercana
+ * (C9 · Mas de Barberans, a ~11 km), marcando el resultado como respaldo.
  */
 class SocrataStationWeatherRepository(
-    private val stationCode: String = "X5",
-    private val stationName: String = "PN dels Ports"
+    private val primary: Station = Station("X5", "PN dels Ports"),
+    private val backup: Station = Station("C9", "Mas de Barberans")
 ) : StationWeatherRepository {
 
-    override suspend fun getLatestWeather(): StationWeatherData = withContext(Dispatchers.IO) {
-        val interval = fetchLatestInterval()
-        val todayAccumulatedMm = fetchTodayAccumulated()
+    data class Station(val code: String, val name: String)
 
-        StationWeatherData(
-            stationCode = stationCode,
-            stationName = stationName,
+    override suspend fun getLatestWeather(): StationWeatherData = withContext(Dispatchers.IO) {
+        val primaryData = runCatching { fetchStation(primary, isBackup = false) }.getOrNull()
+
+        if (primaryData != null && isFresh(primaryData.measuredAtEpochMillis)) {
+            return@withContext primaryData
+        }
+
+        // X5 caída o sin datos: intentamos el respaldo.
+        val backupData = runCatching { fetchStation(backup, isBackup = true) }.getOrNull()
+
+        // Preferimos el respaldo si lo tenemos; si no, lo que haya de X5 (aunque
+        // sea viejo); si no hay nada, propagamos el fallo para que el worker reintente.
+        backupData ?: primaryData ?: error("Sin datos de ${primary.code} ni del respaldo ${backup.code}")
+    }
+
+    private fun isFresh(measuredAtEpochMillis: Long): Boolean =
+        System.currentTimeMillis() - measuredAtEpochMillis <= STALE_THRESHOLD_MS
+
+    private fun fetchStation(station: Station, isBackup: Boolean): StationWeatherData {
+        val interval = fetchLatestInterval(station.code)
+        val todayAccumulatedMm = fetchTodayAccumulated(station.code)
+
+        return StationWeatherData(
+            stationCode = station.code,
+            stationName = station.name,
             precipitationMm = interval.precipitationMm,
             temperatureC = interval.temperatureC,
             humidityPct = interval.humidityPct,
             windSpeedMs = interval.windSpeedMs,
             windDirectionDeg = interval.windDirectionDeg,
             measuredAtEpochMillis = interval.measuredAtEpochMillis,
-            todayAccumulatedMm = todayAccumulatedMm
+            todayAccumulatedMm = todayAccumulatedMm,
+            isBackup = isBackup
         )
     }
 
-    private fun fetchLatestInterval(): IntervalReading {
+    private fun fetchLatestInterval(stationCode: String): IntervalReading {
         val where = "codi_estacio='$stationCode' AND codi_variable in ('30','31','32','33','35')"
         val query = "\$where=${URLEncoder.encode(where, "UTF-8")}" +
             "&\$order=${URLEncoder.encode("data_lectura DESC", "UTF-8")}" +
@@ -56,7 +81,8 @@ class SocrataStationWeatherRepository(
         var humidityPct: Double? = null
         var windSpeedMs: Double? = null
         var windDirectionDeg: Double? = null
-        var measuredAtEpochMillis = System.currentTimeMillis()
+        // 0 = "sin lectura": así isFresh() lo trata como no fresco y se activa el respaldo.
+        var measuredAtEpochMillis = 0L
 
         for (i in 0 until records.length()) {
             val record = records.getJSONObject(i)
@@ -79,7 +105,7 @@ class SocrataStationWeatherRepository(
     }
 
     /** Suma la precipitación (codi_variable 35) de todos los intervalos desde la medianoche local. */
-    private fun fetchTodayAccumulated(): Double? {
+    private fun fetchTodayAccumulated(stationCode: String): Double? {
         return try {
             val midnightUtcIso = formatUtcIso(startOfTodayEpochMillis())
             val where = "codi_estacio='$stationCode' AND codi_variable='35' AND data_lectura >= '$midnightUtcIso'"
@@ -148,5 +174,8 @@ class SocrataStationWeatherRepository(
 
     companion object {
         private const val INTERVAL_BASE_URL = "https://analisi.transparenciacatalunya.cat/resource/nzvn-apee.json"
+        // Más de 90 min sin dato fresco en X5 (la XEMA publica cada 30 min) => usamos el respaldo.
+        // Coincide con el umbral de "dato viejo" que pinta el widget.
+        private const val STALE_THRESHOLD_MS = 90 * 60 * 1000L
     }
 }

@@ -99,9 +99,10 @@ class MeteoX5Widget : AppWidgetProvider() {
 
                 views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent(context))
 
+                val stationLabel = if (data.isBackup) R.string.station_label_backup else R.string.station_label
                 views.setTextViewText(
                     R.id.widget_station_name,
-                    context.getString(R.string.station_label, data.stationCode, data.stationName)
+                    context.getString(stationLabel, data.stationCode, data.stationName)
                 )
                 views.setTextViewText(
                     R.id.widget_precipitation_interval,
@@ -122,18 +123,29 @@ class MeteoX5Widget : AppWidgetProvider() {
                 views.setTextColor(R.id.widget_humidity, valueColor)
                 views.setTextColor(R.id.widget_wind, valueColor)
 
-                if (isStale) {
-                    views.setTextViewText(
-                        R.id.widget_updated_at,
-                        context.getString(R.string.updated_at_stale, time)
-                    )
-                    views.setTextColor(R.id.widget_updated_at, context.getColor(R.color.widget_stale))
-                } else {
-                    views.setTextViewText(
-                        R.id.widget_updated_at,
-                        context.getString(R.string.updated_at, time)
-                    )
-                    views.setTextColor(R.id.widget_updated_at, context.getColor(R.color.widget_text_secondary))
+                when {
+                    // Mostrando el respaldo: avisamos de que X5 no tiene datos (aunque el respaldo sí).
+                    data.isBackup -> {
+                        views.setTextViewText(
+                            R.id.widget_updated_at,
+                            context.getString(R.string.backup_status, time)
+                        )
+                        views.setTextColor(R.id.widget_updated_at, context.getColor(R.color.widget_stale))
+                    }
+                    isStale -> {
+                        views.setTextViewText(
+                            R.id.widget_updated_at,
+                            context.getString(R.string.updated_at_stale, time)
+                        )
+                        views.setTextColor(R.id.widget_updated_at, context.getColor(R.color.widget_stale))
+                    }
+                    else -> {
+                        views.setTextViewText(
+                            R.id.widget_updated_at,
+                            context.getString(R.string.updated_at, time)
+                        )
+                        views.setTextColor(R.id.widget_updated_at, context.getColor(R.color.widget_text_secondary))
+                    }
                 }
 
                 appWidgetManager.updateAppWidget(appWidgetId, views)

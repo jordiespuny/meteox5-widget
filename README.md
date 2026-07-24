@@ -91,6 +91,22 @@ dato desfasado de la fuente de un fallo de la app. El umbral deja margen de
 sobra sobre la latencia normal (~30-60 min), así que en funcionamiento normal
 no salta.
 
+## Estación de respaldo
+
+Si X5 lleva más de 90 min sin datos frescos (caída), el repositorio recurre
+automáticamente a una estación cercana, **C9 · Mas de Barberans** (a ~11 km,
+mismo flanco sureste del macizo dels Ports). Se eligió sobre Horta de Sant
+Joan (D8, ~17 km) por cercanía y misma orientación de ladera, mejor para que
+coincidan los episodios de lluvia; su contrapartida es que está bastante más
+abajo (241 m vs 1056 m de X5), así que la temperatura se lee más cálida.
+
+El respaldo es **explícito**: el widget muestra "C9 · Mas de Barberans
+(respaldo)" y la línea de estado "⚠️ X5 sin datos · HH:mm" en ámbar, para que
+nunca se confundan sus datos con los de X5. En cuanto X5 vuelve a publicar,
+el widget regresa solo a la estación principal. La alerta de "empieza a
+llover" no se dispara al cambiar de estación (`RainAlertState` recuerda de qué
+estación era la última lectura y solo compara dentro de la misma).
+
 ## Estructura
 
 ```
@@ -100,8 +116,8 @@ app/src/main/java/net/zoom3/meteox5widget/
 ├── data/
 │   ├── StationWeatherData.kt              Modelo de datos
 │   ├── StationWeatherRepository.kt        Interfaz de acceso a datos
-│   ├── SocrataStationWeatherRepository.kt Implementación real (dades obertes, Socrata)
-│   ├── RainAlertState.kt                  Recuerda la última precipitación para detectar 0 -> >0
+│   ├── SocrataStationWeatherRepository.kt Implementación real (X5 + respaldo C9, Socrata)
+│   ├── RainAlertState.kt                  Recuerda última precipitación y estación (detectar 0 -> >0)
 │   └── WeatherCache.kt                    Cachea la última lectura para repintar sin esperar red
 ├── notification/
 │   └── RainAlertNotifier.kt               Canal + notificación con sonido de "empieza a llover"

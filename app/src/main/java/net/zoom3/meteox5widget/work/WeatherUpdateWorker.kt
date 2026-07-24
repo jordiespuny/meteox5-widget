@@ -35,10 +35,13 @@ class WeatherUpdateWorker(
         data.precipitationMm?.let { current ->
             val alertState = RainAlertState(applicationContext)
             val previous = alertState.lastPrecipitationMm()
-            if (previous <= 0.0 && current > 0.0) {
+            // Solo avisamos si seguimos en la misma estación: un cambio a la de respaldo
+            // (que ya estuviera lloviendo) no debe dispararse como "empieza a llover".
+            val sameStation = alertState.lastStationCode() == data.stationCode
+            if (sameStation && previous <= 0.0 && current > 0.0) {
                 RainAlertNotifier.notifyRainStarted(applicationContext, current)
             }
-            alertState.save(current)
+            alertState.save(data.stationCode, current)
         }
 
         WeatherCache(applicationContext).save(data)

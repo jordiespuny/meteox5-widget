@@ -9,12 +9,18 @@ class RainAlertState(context: Context) {
 
     fun lastPrecipitationMm(): Double = prefs.getFloat(KEY_LAST_PRECIPITATION, 0f).toDouble()
 
-    fun save(precipitationMm: Double) {
-        prefs.edit().putFloat(KEY_LAST_PRECIPITATION, precipitationMm.toFloat()).apply()
+    fun lastStationCode(): String? = prefs.getString(KEY_LAST_STATION, null)
+
+    fun save(stationCode: String, precipitationMm: Double) {
+        prefs.edit()
+            .putString(KEY_LAST_STATION, stationCode)
+            .putFloat(KEY_LAST_PRECIPITATION, precipitationMm.toFloat())
+            .apply()
     }
 
     companion object {
         private const val PREFS_NAME = "meteox5_widget_state"
         private const val KEY_LAST_PRECIPITATION = "last_precipitation_mm"
+        private const val KEY_LAST_STATION = "last_station_code"
     }
 }
