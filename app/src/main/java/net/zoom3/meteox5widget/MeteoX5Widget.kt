@@ -48,6 +48,8 @@ class MeteoX5Widget : AppWidgetProvider() {
 
     companion object {
         private const val ACTION_REFRESH = "net.zoom3.meteox5widget.ACTION_REFRESH"
+        // Margen holgado sobre los 30 min de publicación de la XEMA + retraso normal de la fuente.
+        private const val STALE_THRESHOLD_MS = 90 * 60 * 1000L
         private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         private val compassPoints = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
 
@@ -84,6 +86,14 @@ class MeteoX5Widget : AppWidgetProvider() {
             appWidgetIds: IntArray,
             data: StationWeatherData
         ) {
+            // La XEMA publica cada 30 min; más de STALE_THRESHOLD sin dato nuevo suele
+            // significar que la estación ha caído o que la fuente va muy rezagada.
+            val isStale = System.currentTimeMillis() - data.measuredAtEpochMillis > STALE_THRESHOLD_MS
+            val time = timeFormat.format(Date(data.measuredAtEpochMillis))
+            val valueColor = context.getColor(
+                if (isStale) R.color.widget_text_muted else R.color.widget_text_primary
+            )
+
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_x5)
 
@@ -104,10 +114,27 @@ class MeteoX5Widget : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_temperature, formatTemperature(context, data.temperatureC))
                 views.setTextViewText(R.id.widget_humidity, formatHumidity(context, data.humidityPct))
                 views.setTextViewText(R.id.widget_wind, formatWind(context, data.windSpeedMs, data.windDirectionDeg))
-                views.setTextViewText(
-                    R.id.widget_updated_at,
-                    context.getString(R.string.updated_at, timeFormat.format(Date(data.measuredAtEpochMillis)))
-                )
+
+                // Cuando el dato es viejo, atenuamos los valores y avisamos en la línea de estado.
+                views.setTextColor(R.id.widget_precipitation_interval, valueColor)
+                views.setTextColor(R.id.widget_precipitation_today, valueColor)
+                views.setTextColor(R.id.widget_temperature, valueColor)
+                views.setTextColor(R.id.widget_humidity, valueColor)
+                views.setTextColor(R.id.widget_wind, valueColor)
+
+                if (isStale) {
+                    views.setTextViewText(
+                        R.id.widget_updated_at,
+                        context.getString(R.string.updated_at_stale, time)
+                    )
+                    views.setTextColor(R.id.widget_updated_at, context.getColor(R.color.widget_stale))
+                } else {
+                    views.setTextViewText(
+                        R.id.widget_updated_at,
+                        context.getString(R.string.updated_at, time)
+                    )
+                    views.setTextColor(R.id.widget_updated_at, context.getColor(R.color.widget_text_secondary))
+                }
 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }

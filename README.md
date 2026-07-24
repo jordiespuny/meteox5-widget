@@ -80,6 +80,17 @@ placeholder al desbloquear, y el botón queda operativo aunque el widget se
 haya quedado con un dibujo antiguo (p. ej. tras actualizar la app, cuando el
 `PendingIntent` del botón todavía no se había adjuntado).
 
+## Indicador de dato viejo
+
+La XEMA publica cada 30 min. Si la última lectura tiene más de 90 min
+(`STALE_THRESHOLD_MS`) —normalmente porque la estación ha caído o porque el
+portal abierto va muy rezagado— el widget lo señala: atenúa los valores
+(color `widget_text_muted`) y cambia la línea de estado a
+"⚠️ Sin datos nuevos desde HH:mm" en ámbar. Así se distingue de un vistazo un
+dato desfasado de la fuente de un fallo de la app. El umbral deja margen de
+sobra sobre la latencia normal (~30-60 min), así que en funcionamiento normal
+no salta.
+
 ## Estructura
 
 ```

@@ -2,4 +2,6 @@
     <color name="widget_background">#1E88E5</color>
     <color name="widget_text_primary">#FFFFFF</color>
     <color name="widget_text_secondary">#D6E9FB</color>
+    <color name="widget_text_muted">#8FB8DE</color>
+    <color name="widget_stale">#FFD54F</color>
 </resources>

@@ -13,6 +13,7 @@
     <string name="label_humidity">Humedad</string>
     <string name="label_wind">Viento</string>
     <string name="updated_at">Actualizado %1$s</string>
+    <string name="updated_at_stale">⚠️ Sin datos nuevos desde %1$s</string>
     <string name="updating">Actualizando…</string>
     <string name="refresh_button_description">Actualizar ahora</string>
     <string name="main_activity_title">Meteo X5 Widget</string>
