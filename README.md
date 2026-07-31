@@ -57,14 +57,15 @@ XEMA en la variable 31), igual que en la web de meteo.cat.
 
 ## Riesgo de incendio
 
-En la esquina superior izquierda hay un arco circular (🔥 en el centro) que se
-llena y vira de verde a rojo según un índice de riesgo de incendio 0-100
-(`FireRisk`). **No es un índice oficial** —los tipo FWI necesitan histórico de
-precipitación y humedad del combustible—; es una heurística transparente:
-combina temperatura (10-40 °C), sequedad (humedad 60→20 %) y viento
-(0-40 km/h), con más peso en calor y sequedad y el viento como amplificador.
-Solo se muestra si hay temperatura y humedad y el dato es fresco; si no, se
-oculta.
+En la esquina superior izquierda hay un arco circular con el valor 0-100 en el
+centro que se llena y vira de verde a rojo según un índice de riesgo de
+incendio (`FireRisk`). **No es un índice oficial** —los tipo FWI necesitan
+histórico de precipitación y humedad del combustible—; es una heurística
+transparente: combina temperatura (10-40 °C), sequedad (humedad 60→20 %) y
+viento (0-40 km/h), con más peso en calor y sequedad y el viento como
+amplificador. Cuando X5 está caída, el índice se calcula con los datos de la
+estación de respaldo (como el resto de valores). Solo se muestra si hay
+temperatura y humedad y el dato es fresco; si no, se oculta.
 
 En Android 13+ hace falta conceder el permiso de notificaciones, que se pide
 la primera vez que se abre la app (`MainActivity`).

@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Typeface
 import kotlin.math.roundToInt
 
 /**
@@ -33,7 +34,7 @@ object FireRisk {
         return (risk * 100).roundToInt().coerceIn(0, 100)
     }
 
-    /** Dibuja el arco circular (verde -> rojo según el riesgo) con un 🔥 en el centro. */
+    /** Dibuja el arco circular (verde -> rojo según el riesgo) con el valor 0-100 en el centro. */
     fun renderGauge(context: Context, risk: Int): Bitmap {
         val density = context.resources.displayMetrics.density
         val size = (GAUGE_SIZE_DP * density).toInt().coerceAtLeast(1)
@@ -64,10 +65,12 @@ object FireRisk {
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = Paint.Align.CENTER
             textSize = size * 0.36f
+            color = Color.WHITE
+            typeface = Typeface.DEFAULT_BOLD
         }
         val centerX = size / 2f
         val centerY = size / 2f - (textPaint.descent() + textPaint.ascent()) / 2f
-        canvas.drawText("🔥", centerX, centerY, textPaint)
+        canvas.drawText(risk.toString(), centerX, centerY, textPaint)
 
         return bitmap
     }
