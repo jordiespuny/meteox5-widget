@@ -24,6 +24,8 @@ class WeatherCache(context: Context) {
             .putLong(KEY_MEASURED_AT, data.measuredAtEpochMillis)
             .putFloat(KEY_TODAY_ACCUMULATED, data.todayAccumulatedMm.toFloatOrNaN())
             .putFloat(KEY_RAIN_24H, data.rain24hMm.toFloatOrNaN())
+            .putFloat(KEY_RAIN_7D, data.rain7dMm.toFloatOrNaN())
+            .putFloat(KEY_RAIN_30D, data.rain30dMm.toFloatOrNaN())
             .putBoolean(KEY_IS_BACKUP, data.isBackup)
             .apply()
     }
@@ -41,6 +43,8 @@ class WeatherCache(context: Context) {
             measuredAtEpochMillis = prefs.getLong(KEY_MEASURED_AT, System.currentTimeMillis()),
             todayAccumulatedMm = prefs.getFloat(KEY_TODAY_ACCUMULATED, Float.NaN).toDoubleOrNull(),
             rain24hMm = prefs.getFloat(KEY_RAIN_24H, Float.NaN).toDoubleOrNull(),
+            rain7dMm = prefs.getFloat(KEY_RAIN_7D, Float.NaN).toDoubleOrNull(),
+            rain30dMm = prefs.getFloat(KEY_RAIN_30D, Float.NaN).toDoubleOrNull(),
             isBackup = prefs.getBoolean(KEY_IS_BACKUP, false)
         )
     }
@@ -61,6 +65,8 @@ class WeatherCache(context: Context) {
         private const val KEY_MEASURED_AT = "measured_at"
         private const val KEY_TODAY_ACCUMULATED = "today_accumulated"
         private const val KEY_RAIN_24H = "rain_24h"
+        private const val KEY_RAIN_7D = "rain_7d"
+        private const val KEY_RAIN_30D = "rain_30d"
         private const val KEY_IS_BACKUP = "is_backup"
     }
 }

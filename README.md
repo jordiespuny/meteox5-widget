@@ -70,12 +70,35 @@ pinar mediterráneo:
 ```text
 I0 = HR/20 + (27 - T)/10     inflamabilidad atmosférica (menor = más seco)
 W  = 1 + (V/20)^1.5          el viento acelera secado y propagación
-B  = 1.0 / 1.3 / 1.8 / 2.5   según lluvia <2 / <10 / <20 / >=20 mm
-R  = W / (I0 * B)
+B  = 1.0 / 1.3 / 1.8 / 2.5   según lluvia 24 h <2 / <10 / <20 / >=20 mm
+R  = W / (I0 * B) * D * S
 ```
 
 Clasificación: `R < 0.5` bajo · `0.5-1.2` moderado · `1.2-2.5` alto · `> 2.5`
 extremo.
+
+### D — sequedad de fondo (medida)
+
+El instantáneo no distingue entre "hoy no ha llovido" y "no llueve desde hace
+un mes", y en pinar mediterráneo eso cambia mucho las cosas: es el papel que
+en el FWI cumplen DMC y DC. `D` sale de la lluvia real de 7 y 30 días
+(`1.35` si el mes lleva <5 mm, hasta `0.85` si pasa de 50 mm, con alivio extra
+si la lluvia fue reciente). Como los 7 días están contenidos en los 30, el
+resultado se acota a `[0.85, 1.35]` para no aplicar el mismo alivio dos veces.
+Sin datos de sequía, `D = 1.0` y el índice sigue funcionando.
+
+Estas ventanas se leen del dataset **diario** (`7bvh-jvq2`, variable 1300): son
+~30 registros en vez de ~1.400 lecturas semihorarias, y su retraso de 1-2 días
+es irrelevante en una suma de semanas.
+
+### S — factor estacional (calendario)
+
+Lo que la estación aporta **más allá** de la sequía es el combustible vivo: en
+verano el sotobosque entra en letargo y los pinos emiten más terpenos, y eso no
+se deduce de la lluvia. Va deliberadamente suave — `0.85` en invierno a `1.15`
+en julio-agosto — y no con los `1.4-1.5` que se usan cuando el calendario es el
+*único* sustituto de la sequía: aquí la sequedad ya se mide aparte, y aplicar
+ambos a plena escala contaría dos veces lo mismo.
 
 Es un índice de **peligro meteorológico**, no una probabilidad de incendio:
 indica cómo de favorables son las condiciones si aparece una ignición.

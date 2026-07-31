@@ -13,6 +13,7 @@ import net.zoom3.meteox5widget.data.StationWeatherData
 import net.zoom3.meteox5widget.data.WeatherCache
 import net.zoom3.meteox5widget.work.WeatherUpdateWorker
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -134,7 +135,10 @@ class MeteoX5Widget : AppWidgetProvider() {
                         tempC = data.temperatureC,
                         humidityPct = data.humidityPct,
                         windKmh = (data.windSpeedMs ?: 0.0) * 3.6,
-                        rainMm = data.rain24hMm ?: 0.0
+                        rain24hMm = data.rain24hMm ?: 0.0,
+                        rain7dMm = data.rain7dMm,
+                        rain30dMm = data.rain30dMm,
+                        month = Calendar.getInstance().get(Calendar.MONTH) + 1
                     )
                     val levelText = context.getString(levelLabel(risk.level))
                     views.setTextViewText(R.id.widget_fire_risk_level, levelText)

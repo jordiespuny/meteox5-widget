@@ -54,6 +54,7 @@ class SocrataStationWeatherRepository(
     private fun fetchStation(station: Station, isBackup: Boolean): StationWeatherData {
         val interval = fetchLatestInterval(station.code)
         val rain = fetchPrecipitationWindows(station.code)
+        val drought = fetchDroughtWindows(station.code)
 
         return StationWeatherData(
             stationCode = station.code,
@@ -66,6 +67,8 @@ class SocrataStationWeatherRepository(
             measuredAtEpochMillis = interval.measuredAtEpochMillis,
             todayAccumulatedMm = rain?.todayMm,
             rain24hMm = rain?.last24hMm,
+            rain7dMm = drought?.last7dMm,
+            rain30dMm = drought?.last30dMm,
             isBackup = isBackup
         )
     }
@@ -140,6 +143,48 @@ class SocrataStationWeatherRepository(
         }
     }
 
+    /**
+     * Lluvia acumulada de los últimos 7 y 30 días, para estimar la sequedad de
+     * fondo del combustible (el papel que en el FWI cumplen DMC y DC).
+     *
+     * Usa el dataset **diario** (`7bvh-jvq2`, variable 1300) en vez de las
+     * lecturas de 30 min: son ~30 registros en lugar de ~1.400, y su retraso de
+     * 1-2 días es irrelevante en una suma de semanas. Las ventanas se anclan al
+     * último día disponible, no a "ahora", precisamente por ese retraso.
+     */
+    private fun fetchDroughtWindows(stationCode: String): DroughtWindows? {
+        return try {
+            val where = "codi_estacio='$stationCode' AND codi_variable='1300'"
+            val query = "\$where=${URLEncoder.encode(where, "UTF-8")}" +
+                "&\$order=${URLEncoder.encode("data_lectura DESC", "UTF-8")}" +
+                "&\$limit=30"
+            val records = JSONArray(fetchBody("$DAILY_BASE_URL?$query"))
+            if (records.length() == 0) return null
+
+            val days = ArrayList<Pair<Long, Double>>(records.length())
+            for (i in 0 until records.length()) {
+                val record = records.getJSONObject(i)
+                val value = record.optString("valor").toDoubleOrNull() ?: continue
+                val at = parseIsoDateTime(record.optString("data_lectura")) ?: continue
+                days.add(at to value)
+            }
+            if (days.isEmpty()) return null
+
+            val newest = days.maxOf { it.first }
+            val weekStart = newest - 6 * DAY_MS // el día más reciente cuenta como uno de los 7
+            var last7dMm = 0.0
+            var last30dMm = 0.0
+            for ((at, value) in days) {
+                last30dMm += value
+                if (at >= weekStart) last7dMm += value
+            }
+            DroughtWindows(last7dMm, last30dMm)
+        } catch (e: Exception) {
+            // Sin este dato el índice sigue funcionando, solo que sin corrección por sequía.
+            null
+        }
+    }
+
     private fun fetchBody(urlString: String): String {
         val connection = URL(urlString).openConnection() as HttpURLConnection
         connection.connectTimeout = 10_000
@@ -180,6 +225,8 @@ class SocrataStationWeatherRepository(
 
     private data class PrecipitationWindows(val todayMm: Double, val last24hMm: Double)
 
+    private data class DroughtWindows(val last7dMm: Double, val last30dMm: Double)
+
     private data class IntervalReading(
         val precipitationMm: Double?,
         val temperatureC: Double?,
@@ -191,6 +238,7 @@ class SocrataStationWeatherRepository(
 
     companion object {
         private const val INTERVAL_BASE_URL = "https://analisi.transparenciacatalunya.cat/resource/nzvn-apee.json"
+        private const val DAILY_BASE_URL = "https://analisi.transparenciacatalunya.cat/resource/7bvh-jvq2.json"
         // Más de 90 min sin dato fresco en X5 (la XEMA publica cada 30 min) => usamos el respaldo.
         // Coincide con el umbral de "dato viejo" que pinta el widget.
         private const val STALE_THRESHOLD_MS = 90 * 60 * 1000L

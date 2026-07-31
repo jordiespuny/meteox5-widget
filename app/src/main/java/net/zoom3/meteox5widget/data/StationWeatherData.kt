@@ -13,6 +13,9 @@ data class StationWeatherData(
     val todayAccumulatedMm: Double?,
     /** Precipitación de las últimas 24 h; el episodio reciente que atenúa el riesgo de incendio. */
     val rain24hMm: Double?,
+    /** Lluvia de los últimos 7 y 30 días: sequedad de fondo del combustible. */
+    val rain7dMm: Double?,
+    val rain30dMm: Double?,
     /** true si estos datos son de la estación de respaldo porque la principal (X5) no tenía datos frescos. */
     val isBackup: Boolean = false
 )
