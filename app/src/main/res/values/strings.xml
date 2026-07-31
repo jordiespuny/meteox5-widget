@@ -6,8 +6,9 @@
     <string name="precipitation_value">%.1f mm</string>
     <string name="temperature_value">%.1f°C</string>
     <string name="humidity_value">%.0f%%</string>
-    <string name="wind_value">%1$.0f km/h %2$s</string>
+    <string name="wind_value">%1$.0f km/h %3$s\n%2$s</string>
     <string name="wind_value_no_direction">%1$.0f km/h</string>
+    <string name="fire_risk_description">Riesgo de incendio: %1$d de 100</string>
     <string name="label_now">Ahora</string>
     <string name="label_today">Hoy</string>
     <string name="label_temperature">Temp</string>

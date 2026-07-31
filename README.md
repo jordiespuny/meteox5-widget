@@ -47,6 +47,25 @@ Android fija el sonido de un canal de notificación en el momento en que se
 crea y no permite cambiarlo después, así que reutilizar el mismo ID con un
 sonido distinto no tendría efecto en los móviles donde el canal ya existe.
 
+## Nombre del viento
+
+Junto a la dirección cardinal (NE, SO…) se muestra el nombre tradicional del
+viento en Catalunya según la rosa dels vents: Tramuntana (N), Gregal (NE),
+Llevant (E), Xaloc (SE), Migjorn (S), Garbí (SO), Ponent (O), Mestral (NO).
+El nombre corresponde a la dirección de la que sopla el viento (la que da la
+XEMA en la variable 31), igual que en la web de meteo.cat.
+
+## Riesgo de incendio
+
+En la esquina superior izquierda hay un arco circular (🔥 en el centro) que se
+llena y vira de verde a rojo según un índice de riesgo de incendio 0-100
+(`FireRisk`). **No es un índice oficial** —los tipo FWI necesitan histórico de
+precipitación y humedad del combustible—; es una heurística transparente:
+combina temperatura (10-40 °C), sequedad (humedad 60→20 %) y viento
+(0-40 km/h), con más peso en calor y sequedad y el viento como amplificador.
+Solo se muestra si hay temperatura y humedad y el dato es fresco; si no, se
+oculta.
+
 En Android 13+ hace falta conceder el permiso de notificaciones, que se pide
 la primera vez que se abre la app (`MainActivity`).
 
@@ -113,6 +132,7 @@ estación era la última lectura y solo compara dentro de la misma).
 app/src/main/java/net/zoom3/meteox5widget/
 ├── MainActivity.kt                       Activity mínima (host de la app + permiso de notificaciones)
 ├── MeteoX5Widget.kt                       AppWidgetProvider: pinta el RemoteViews del widget
+├── FireRisk.kt                            Índice de riesgo de incendio + dibujo del arco circular
 ├── data/
 │   ├── StationWeatherData.kt              Modelo de datos
 │   ├── StationWeatherRepository.kt        Interfaz de acceso a datos

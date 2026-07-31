@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import android.widget.RemoteViews
 import androidx.work.WorkManager
 import net.zoom3.meteox5widget.data.StationWeatherData
@@ -52,6 +53,10 @@ class MeteoX5Widget : AppWidgetProvider() {
         private const val STALE_THRESHOLD_MS = 90 * 60 * 1000L
         private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         private val compassPoints = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
+        // Nombres tradicionales de los vientos en Catalunya (rosa dels vents), en el mismo orden.
+        private val windNames = listOf(
+            "Tramuntana", "Gregal", "Llevant", "Xaloc", "Migjorn", "Garbí", "Ponent", "Mestral"
+        )
 
         private fun refreshPendingIntent(context: Context): PendingIntent {
             val intent = Intent(context, MeteoX5Widget::class.java).apply {
@@ -123,6 +128,20 @@ class MeteoX5Widget : AppWidgetProvider() {
                 views.setTextColor(R.id.widget_humidity, valueColor)
                 views.setTextColor(R.id.widget_wind, valueColor)
 
+                // Riesgo de incendio: solo con temperatura y humedad, y datos frescos.
+                if (!isStale && data.temperatureC != null && data.humidityPct != null) {
+                    val windKmh = (data.windSpeedMs ?: 0.0) * 3.6
+                    val risk = FireRisk.score(data.temperatureC, data.humidityPct, windKmh)
+                    views.setImageViewBitmap(R.id.widget_fire_risk, FireRisk.renderGauge(context, risk))
+                    views.setContentDescription(
+                        R.id.widget_fire_risk,
+                        context.getString(R.string.fire_risk_description, risk)
+                    )
+                    views.setViewVisibility(R.id.widget_fire_risk, View.VISIBLE)
+                } else {
+                    views.setViewVisibility(R.id.widget_fire_risk, View.GONE)
+                }
+
                 when {
                     // Mostrando el respaldo: avisamos de que X5 no tiene datos (aunque el respaldo sí).
                     data.isBackup -> {
@@ -164,12 +183,11 @@ class MeteoX5Widget : AppWidgetProvider() {
         private fun formatWind(context: Context, speedMs: Double?, directionDeg: Double?): String {
             if (speedMs == null) return "--"
             val kmh = speedMs * 3.6
-            val direction = directionDeg?.let { compassPoints[compassIndex(it)] }
-            return if (direction != null) {
-                context.getString(R.string.wind_value, kmh, direction)
-            } else {
-                context.getString(R.string.wind_value_no_direction, kmh)
+            if (directionDeg == null) {
+                return context.getString(R.string.wind_value_no_direction, kmh)
             }
+            val index = compassIndex(directionDeg)
+            return context.getString(R.string.wind_value, kmh, windNames[index], compassPoints[index])
         }
 
         private fun compassIndex(degrees: Double): Int {
