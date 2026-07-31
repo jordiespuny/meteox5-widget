@@ -204,6 +204,7 @@ class MeteoX5Widget : AppWidgetProvider() {
             FireRisk.Level.LOW -> R.string.fire_risk_low
             FireRisk.Level.MODERATE -> R.string.fire_risk_moderate
             FireRisk.Level.HIGH -> R.string.fire_risk_high
+            FireRisk.Level.VERY_HIGH -> R.string.fire_risk_very_high
             FireRisk.Level.EXTREME -> R.string.fire_risk_extreme
         }
 
@@ -211,6 +212,7 @@ class MeteoX5Widget : AppWidgetProvider() {
             FireRisk.Level.LOW -> R.drawable.fire_chip_low
             FireRisk.Level.MODERATE -> R.drawable.fire_chip_moderate
             FireRisk.Level.HIGH -> R.drawable.fire_chip_high
+            FireRisk.Level.VERY_HIGH -> R.drawable.fire_chip_very_high
             FireRisk.Level.EXTREME -> R.drawable.fire_chip_extreme
         }
 

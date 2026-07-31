@@ -58,11 +58,10 @@ XEMA en la variable 31), igual que en la web de meteo.cat.
 
 ## Peligro meteorológico de incendio
 
-En la esquina superior izquierda hay un cartel ("INCENDIO" + nivel) que cambia
-de color según `FireRisk`: verde bajo, ámbar moderado, naranja alto, rojo
-extremo. Se muestra el **nivel**, no un número: un "24/100" invitaba a leerse
-como "24 % de probabilidad de incendio", que es justo lo que este índice no
-es.
+A la izquierda de la fila superior hay un cartel ("INCENDIO" + nivel) que cambia
+de color siguiendo la gama del mapa oficial. Se muestra el **nivel**, no un
+número: un "24/100" invitaba a leerse como "24 % de probabilidad de incendio",
+que es justo lo que este índice no es.
 
 Usa el **índice de Angström modificado con corrección por lluvia**, adaptado a
 pinar mediterráneo:
@@ -74,8 +73,29 @@ B  = 1.0 / 1.3 / 1.8 / 2.5   según lluvia 24 h <2 / <10 / <20 / >=20 mm
 R  = W / (I0 * B) * D * S
 ```
 
-Clasificación: `R < 0.5` bajo · `0.5-1.2` moderado · `1.2-2.5` alto · `> 2.5`
-extremo.
+Clasificación en **cinco niveles**, los mismos que el [mapa municipal de perill
+d'incendi forestal del DARP](https://agricultura.gencat.cat/prediccioincendis),
+para poder comparar sin traducción mental:
+
+| R | Nivel | Equivale a |
+|---|---|---|
+| `< 0.35` | bajo | perill baix |
+| `0.35 - 0.60` | moderado | perill moderat |
+| `0.60 - 1.20` | alto | perill alt |
+| `1.20 - 2.50` | muy alto | perill molt alt |
+| `> 2.50` | extremo | perill extrem |
+
+Los cortes altos (1.20 y 2.50) son los del modelo Angström original. Los dos
+bajos (0.35 y 0.60) son un **ajuste propio, no un valor oficial**: calibrados
+contra una sola observación — 31/07/2026 en el PN dels Ports, 27,3 °C / 64 % /
+11 km/h → R≈0,65, con el mapa oficial en "alt" ese día. Un único punto de
+contraste, así que conviene revisarlos según se acumulen comparaciones.
+
+Aun con la misma escala, los dos productos no son equivalentes: el mapa oficial
+es municipal y combina modelo de combustible, estado de la vegetación,
+topografía y su sistema de predicción; este widget es una sola estación y solo
+tiempo atmosférico. X5 además está a 1.056 m, mientras el municipio de Roquetes
+baja hasta el llano.
 
 ### D — sequedad de fondo (medida)
 

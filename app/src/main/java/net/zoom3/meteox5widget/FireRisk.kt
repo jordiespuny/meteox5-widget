@@ -25,7 +25,7 @@ import kotlin.math.pow
  */
 object FireRisk {
 
-    enum class Level { LOW, MODERATE, HIGH, EXTREME }
+    enum class Level { LOW, MODERATE, HIGH, VERY_HIGH, EXTREME }
 
     data class Result(
         /** Índice R ya corregido por sequía y estación. */
@@ -107,10 +107,23 @@ object FireRisk {
         else -> 0.90       // octubre-noviembre
     }
 
+    /**
+     * Cinco niveles, para poder comparar directamente con el mapa municipal de
+     * perill d'incendi forestal del DARP (baix / moderat / alt / molt alt /
+     * extrem) sin traducción mental.
+     *
+     * Los cortes altos (1.2 y 2.5) son los del modelo Angström original. Los
+     * dos bajos (0.35 y 0.60) son un **ajuste propio**, no un valor oficial:
+     * están calibrados contra una observación puntual — 31/07/2026 en el PN
+     * dels Ports, 27.3 °C / 64 % / 11 km/h, R≈0.65, con el mapa oficial en
+     * "alt" ese día. Un único punto de contraste, así que conviene revisarlos
+     * cuando se acumulen más comparaciones.
+     */
     private fun levelOf(r: Double): Level = when {
-        r < 0.5 -> Level.LOW
-        r <= 1.2 -> Level.MODERATE
-        r <= 2.5 -> Level.HIGH
+        r < 0.35 -> Level.LOW
+        r < 0.60 -> Level.MODERATE
+        r <= 1.20 -> Level.HIGH
+        r <= 2.50 -> Level.VERY_HIGH
         else -> Level.EXTREME
     }
 
