@@ -25,7 +25,8 @@ Variables usadas (`codi_variable`):
 El acumulado de "Hoy" **no** usa el producto diario certificado de Meteocat
 (que se publica con 1-2 días de retraso) — se calcula sumando nosotros mismos
 las lecturas de la variable 35 desde la medianoche local, así que tiene la
-misma frescura (~30-60 min) que el resto de datos.
+misma frescura (~30-60 min) que el resto de datos. De la misma consulta se
+saca la lluvia de las últimas 24 h, que alimenta el índice de incendio.
 
 Cuando llegue la API key oficial de Meteocat, migrar a
 `https://apidocs.meteocat.gencat.cat` (mismos códigos de variable) creando
@@ -55,17 +56,42 @@ Llevant (E), Xaloc (SE), Migjorn (S), Garbí (SO), Ponent (O), Mestral (NO).
 El nombre corresponde a la dirección de la que sopla el viento (la que da la
 XEMA en la variable 31), igual que en la web de meteo.cat.
 
-## Riesgo de incendio
+## Peligro meteorológico de incendio
 
-En la esquina superior izquierda hay un arco circular con el valor 0-100 en el
-centro que se llena y vira de verde a rojo según un índice de riesgo de
-incendio (`FireRisk`). **No es un índice oficial** —los tipo FWI necesitan
-histórico de precipitación y humedad del combustible—; es una heurística
-transparente: combina temperatura (10-40 °C), sequedad (humedad 60→20 %) y
-viento (0-40 km/h), con más peso en calor y sequedad y el viento como
-amplificador. Cuando X5 está caída, el índice se calcula con los datos de la
-estación de respaldo (como el resto de valores). Solo se muestra si hay
-temperatura y humedad y el dato es fresco; si no, se oculta.
+En la esquina superior izquierda hay un arco circular (valor 0-100 en el
+centro) que se llena y vira de verde a rojo según el índice de `FireRisk`.
+
+Usa el **índice de Angström modificado con corrección por lluvia**, adaptado a
+pinar mediterráneo:
+
+```text
+I0 = HR/20 + (27 - T)/10     inflamabilidad atmosférica (menor = más seco)
+W  = 1 + (V/20)^1.5          el viento acelera secado y propagación
+B  = 1.0 / 1.3 / 1.8 / 2.5   según lluvia <2 / <10 / <20 / >=20 mm
+R  = W / (I0 * B)
+```
+
+Clasificación: `R < 0.5` bajo · `0.5-1.2` moderado · `1.2-2.5` alto · `> 2.5`
+extremo. Como R no es lineal ni acotado, el arco reparte un cuarto de vuelta
+por nivel, de modo que la posición de la barra siempre coincide con la
+categoría.
+
+Es un índice de **peligro meteorológico**, no una probabilidad de incendio:
+indica cómo de favorables son las condiciones si aparece una ignición.
+
+**Por qué no el FWI canadiense**, que es más sólido: necesita arrastrar los
+códigos FFMC/DMC/DC del día anterior, lecturas al mediodía solar y semanas de
+spin-up antes de que el Drought Code sea representativo. Un widget recién
+instalado daría valores sin sentido durante mucho tiempo.
+
+La lluvia que atenúa el índice es la de las **últimas 24 h** (`rain24hMm`), no
+la acumulada desde medianoche: a las 00:30 esta última sería casi siempre 0
+aunque hubiera llovido 30 mm la tarde anterior. Ambas ventanas se calculan de
+una sola consulta.
+
+Cuando X5 está caída, el índice se calcula con los datos de la estación de
+respaldo, como el resto de valores. Solo se muestra si hay temperatura y
+humedad y el dato es fresco; si no, se oculta.
 
 En Android 13+ hace falta conceder el permiso de notificaciones, que se pide
 la primera vez que se abre la app (`MainActivity`).
@@ -133,7 +159,7 @@ estación era la última lectura y solo compara dentro de la misma).
 app/src/main/java/net/zoom3/meteox5widget/
 ├── MainActivity.kt                       Activity mínima (host de la app + permiso de notificaciones)
 ├── MeteoX5Widget.kt                       AppWidgetProvider: pinta el RemoteViews del widget
-├── FireRisk.kt                            Índice de riesgo de incendio + dibujo del arco circular
+├── FireRisk.kt                            Índice Angström modificado + dibujo del arco circular
 ├── data/
 │   ├── StationWeatherData.kt              Modelo de datos
 │   ├── StationWeatherRepository.kt        Interfaz de acceso a datos

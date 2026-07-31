@@ -130,12 +130,16 @@ class MeteoX5Widget : AppWidgetProvider() {
 
                 // Riesgo de incendio: solo con temperatura y humedad, y datos frescos.
                 if (!isStale && data.temperatureC != null && data.humidityPct != null) {
-                    val windKmh = (data.windSpeedMs ?: 0.0) * 3.6
-                    val risk = FireRisk.score(data.temperatureC, data.humidityPct, windKmh)
-                    views.setImageViewBitmap(R.id.widget_fire_risk, FireRisk.renderGauge(context, risk))
+                    val risk = FireRisk.evaluate(
+                        tempC = data.temperatureC,
+                        humidityPct = data.humidityPct,
+                        windKmh = (data.windSpeedMs ?: 0.0) * 3.6,
+                        rainMm = data.rain24hMm ?: 0.0
+                    )
+                    views.setImageViewBitmap(R.id.widget_fire_risk, FireRisk.renderGauge(context, risk.score))
                     views.setContentDescription(
                         R.id.widget_fire_risk,
-                        context.getString(R.string.fire_risk_description, risk)
+                        context.getString(R.string.fire_risk_description, context.getString(levelLabel(risk.level)))
                     )
                     views.setViewVisibility(R.id.widget_fire_risk, View.VISIBLE)
                 } else {
@@ -188,6 +192,13 @@ class MeteoX5Widget : AppWidgetProvider() {
             }
             val index = compassIndex(directionDeg)
             return context.getString(R.string.wind_value, kmh, windNames[index], compassPoints[index])
+        }
+
+        private fun levelLabel(level: FireRisk.Level): Int = when (level) {
+            FireRisk.Level.LOW -> R.string.fire_risk_low
+            FireRisk.Level.MODERATE -> R.string.fire_risk_moderate
+            FireRisk.Level.HIGH -> R.string.fire_risk_high
+            FireRisk.Level.EXTREME -> R.string.fire_risk_extreme
         }
 
         private fun compassIndex(degrees: Double): Int {

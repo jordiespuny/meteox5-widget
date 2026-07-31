@@ -11,6 +11,8 @@ data class StationWeatherData(
     val measuredAtEpochMillis: Long,
     /** Suma de las precipitaciones de intervalo desde la medianoche local; null si no se pudo calcular. */
     val todayAccumulatedMm: Double?,
+    /** Precipitación de las últimas 24 h; el episodio reciente que atenúa el riesgo de incendio. */
+    val rain24hMm: Double?,
     /** true si estos datos son de la estación de respaldo porque la principal (X5) no tenía datos frescos. */
     val isBackup: Boolean = false
 )

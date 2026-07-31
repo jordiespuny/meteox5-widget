@@ -53,7 +53,7 @@ class SocrataStationWeatherRepository(
 
     private fun fetchStation(station: Station, isBackup: Boolean): StationWeatherData {
         val interval = fetchLatestInterval(station.code)
-        val todayAccumulatedMm = fetchTodayAccumulated(station.code)
+        val rain = fetchPrecipitationWindows(station.code)
 
         return StationWeatherData(
             stationCode = station.code,
@@ -64,7 +64,8 @@ class SocrataStationWeatherRepository(
             windSpeedMs = interval.windSpeedMs,
             windDirectionDeg = interval.windDirectionDeg,
             measuredAtEpochMillis = interval.measuredAtEpochMillis,
-            todayAccumulatedMm = todayAccumulatedMm,
+            todayAccumulatedMm = rain?.todayMm,
+            rain24hMm = rain?.last24hMm,
             isBackup = isBackup
         )
     }
@@ -104,21 +105,35 @@ class SocrataStationWeatherRepository(
         return IntervalReading(precipitationMm, temperatureC, humidityPct, windSpeedMs, windDirectionDeg, measuredAtEpochMillis)
     }
 
-    /** Suma la precipitación (codi_variable 35) de todos los intervalos desde la medianoche local. */
-    private fun fetchTodayAccumulated(stationCode: String): Double? {
+    /**
+     * Suma la precipitación (codi_variable 35) en dos ventanas de una sola consulta:
+     * desde la medianoche local (lo que muestra el widget como "Hoy") y las últimas
+     * 24 h (el episodio reciente que atenúa el riesgo de incendio). Las 24 h siempre
+     * empiezan antes que la medianoche de hoy, así que basta con pedir desde ahí.
+     */
+    private fun fetchPrecipitationWindows(stationCode: String): PrecipitationWindows? {
         return try {
-            val midnightUtcIso = formatUtcIso(startOfTodayEpochMillis())
-            val where = "codi_estacio='$stationCode' AND codi_variable='35' AND data_lectura >= '$midnightUtcIso'"
+            val now = System.currentTimeMillis()
+            val midnight = startOfTodayEpochMillis()
+            val since = minOf(midnight, now - DAY_MS)
+            val sinceUtcIso = formatUtcIso(since)
+
+            val where = "codi_estacio='$stationCode' AND codi_variable='35' AND data_lectura >= '$sinceUtcIso'"
             val query = "\$where=${URLEncoder.encode(where, "UTF-8")}" +
                 "&\$order=${URLEncoder.encode("data_lectura ASC", "UTF-8")}" +
                 "&\$limit=100"
             val records = JSONArray(fetchBody("$INTERVAL_BASE_URL?$query"))
 
-            var sum = 0.0
+            var todayMm = 0.0
+            var last24hMm = 0.0
             for (i in 0 until records.length()) {
-                sum += records.getJSONObject(i).optString("valor_lectura").toDoubleOrNull() ?: 0.0
+                val record = records.getJSONObject(i)
+                val value = record.optString("valor_lectura").toDoubleOrNull() ?: continue
+                val at = parseIsoDateTime(record.optString("data_lectura")) ?: continue
+                if (at >= midnight) todayMm += value
+                if (at >= now - DAY_MS) last24hMm += value
             }
-            sum
+            PrecipitationWindows(todayMm, last24hMm)
         } catch (e: Exception) {
             // Un fallo en este cálculo no debe tumbar el resto del widget.
             null
@@ -163,6 +178,8 @@ class SocrataStationWeatherRepository(
         }
     }
 
+    private data class PrecipitationWindows(val todayMm: Double, val last24hMm: Double)
+
     private data class IntervalReading(
         val precipitationMm: Double?,
         val temperatureC: Double?,
@@ -177,5 +194,6 @@ class SocrataStationWeatherRepository(
         // Más de 90 min sin dato fresco en X5 (la XEMA publica cada 30 min) => usamos el respaldo.
         // Coincide con el umbral de "dato viejo" que pinta el widget.
         private const val STALE_THRESHOLD_MS = 90 * 60 * 1000L
+        private const val DAY_MS = 24 * 60 * 60 * 1000L
     }
 }
