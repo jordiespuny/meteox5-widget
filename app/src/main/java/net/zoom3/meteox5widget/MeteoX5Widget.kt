@@ -136,10 +136,12 @@ class MeteoX5Widget : AppWidgetProvider() {
                         windKmh = (data.windSpeedMs ?: 0.0) * 3.6,
                         rainMm = data.rain24hMm ?: 0.0
                     )
-                    views.setImageViewBitmap(R.id.widget_fire_risk, FireRisk.renderGauge(context, risk.score))
+                    val levelText = context.getString(levelLabel(risk.level))
+                    views.setTextViewText(R.id.widget_fire_risk_level, levelText)
+                    views.setInt(R.id.widget_fire_risk, "setBackgroundResource", chipBackground(risk.level))
                     views.setContentDescription(
                         R.id.widget_fire_risk,
-                        context.getString(R.string.fire_risk_description, context.getString(levelLabel(risk.level)))
+                        context.getString(R.string.fire_risk_description, levelText)
                     )
                     views.setViewVisibility(R.id.widget_fire_risk, View.VISIBLE)
                 } else {
@@ -199,6 +201,13 @@ class MeteoX5Widget : AppWidgetProvider() {
             FireRisk.Level.MODERATE -> R.string.fire_risk_moderate
             FireRisk.Level.HIGH -> R.string.fire_risk_high
             FireRisk.Level.EXTREME -> R.string.fire_risk_extreme
+        }
+
+        private fun chipBackground(level: FireRisk.Level): Int = when (level) {
+            FireRisk.Level.LOW -> R.drawable.fire_chip_low
+            FireRisk.Level.MODERATE -> R.drawable.fire_chip_moderate
+            FireRisk.Level.HIGH -> R.drawable.fire_chip_high
+            FireRisk.Level.EXTREME -> R.drawable.fire_chip_extreme
         }
 
         private fun compassIndex(degrees: Double): Int {

@@ -4,4 +4,9 @@
     <color name="widget_text_secondary">#D6E9FB</color>
     <color name="widget_text_muted">#8FB8DE</color>
     <color name="widget_stale">#FFD54F</color>
+    <!-- Fondos del cartel de peligro de incendio; todos con texto blanco encima. -->
+    <color name="fire_low">#2E7D32</color>
+    <color name="fire_moderate">#A67C00</color>
+    <color name="fire_high">#D84315</color>
+    <color name="fire_extreme">#B71C1C</color>
 </resources>

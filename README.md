@@ -58,8 +58,11 @@ XEMA en la variable 31), igual que en la web de meteo.cat.
 
 ## Peligro meteorológico de incendio
 
-En la esquina superior izquierda hay un arco circular (valor 0-100 en el
-centro) que se llena y vira de verde a rojo según el índice de `FireRisk`.
+En la esquina superior izquierda hay un cartel ("INCENDIO" + nivel) que cambia
+de color según `FireRisk`: verde bajo, ámbar moderado, naranja alto, rojo
+extremo. Se muestra el **nivel**, no un número: un "24/100" invitaba a leerse
+como "24 % de probabilidad de incendio", que es justo lo que este índice no
+es.
 
 Usa el **índice de Angström modificado con corrección por lluvia**, adaptado a
 pinar mediterráneo:
@@ -72,9 +75,7 @@ R  = W / (I0 * B)
 ```
 
 Clasificación: `R < 0.5` bajo · `0.5-1.2` moderado · `1.2-2.5` alto · `> 2.5`
-extremo. Como R no es lineal ni acotado, el arco reparte un cuarto de vuelta
-por nivel, de modo que la posición de la barra siempre coincide con la
-categoría.
+extremo.
 
 Es un índice de **peligro meteorológico**, no una probabilidad de incendio:
 indica cómo de favorables son las condiciones si aparece una ignición.
@@ -159,7 +160,7 @@ estación era la última lectura y solo compara dentro de la misma).
 app/src/main/java/net/zoom3/meteox5widget/
 ├── MainActivity.kt                       Activity mínima (host de la app + permiso de notificaciones)
 ├── MeteoX5Widget.kt                       AppWidgetProvider: pinta el RemoteViews del widget
-├── FireRisk.kt                            Índice Angström modificado + dibujo del arco circular
+├── FireRisk.kt                            Índice Angström modificado (peligro de incendio)
 ├── data/
 │   ├── StationWeatherData.kt              Modelo de datos
 │   ├── StationWeatherRepository.kt        Interfaz de acceso a datos

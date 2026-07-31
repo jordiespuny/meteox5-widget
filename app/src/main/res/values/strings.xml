@@ -9,6 +9,7 @@
     <string name="wind_value">%1$.0f km/h %3$s\n%2$s</string>
     <string name="wind_value_no_direction">%1$.0f km/h</string>
     <string name="fire_risk_description">Peligro meteorológico de incendio: %1$s</string>
+    <string name="fire_risk_chip_title">INCENDIO</string>
     <string name="fire_risk_low">bajo</string>
     <string name="fire_risk_moderate">moderado</string>
     <string name="fire_risk_high">alto</string>
