@@ -16,7 +16,13 @@ import java.util.TimeZone
  * Lee las lecturas de la XEMA para una estación desde el dataset abierto de
  * Socrata (analisi.transparenciacatalunya.cat/resource/nzvn-apee), lecturas
  * cada 30 min: precipitación del intervalo, temperatura, humedad y viento.
- * No requiere la API key oficial de Meteocat (pendiente de aprobación).
+ *
+ * Son los mismos datos del Servei Meteorològic —las mismas estaciones XEMA y
+ * los mismos códigos de variable—, solo que entrando por el portal abierto en
+ * vez de por su API oficial. Esa API se descartó: su key caduca a los 3 meses
+ * y hay que volver a solicitarla, poco operativo para un widget que debe
+ * funcionar sin mantenimiento. A cambio, el portal no da garantía de servicio
+ * y va algo más rezagado.
  *
  * El acumulado de "hoy" se calcula sumando esas mismas lecturas de intervalo
  * desde la medianoche local, en vez de usar el producto diario certificado

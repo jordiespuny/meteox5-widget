@@ -8,10 +8,11 @@ precipitación (del intervalo actual y acumulada de hoy), temperatura, humedad y
 
 Usa `SocrataStationWeatherRepository`, que lee el dataset abierto **`nzvn-apee`**
 ("Dades meteorològiques de la XEMA", lecturas cada 30 min) del portal de
-dades obertes de la Generalitat (Socrata) — no requiere la API key oficial
-de Meteocat (cuyo alta tarda ~7 días en aprobarse), pero es una solución
-provisional: no hay garantía de SLA ni de que el dataset se mantenga igual a
-largo plazo.
+dades obertes de la Generalitat (Socrata). Son los mismos datos del Servei
+Meteorològic —las mismas estaciones XEMA y los mismos códigos de variable—,
+solo que entrando por el portal abierto en vez de por su API oficial. A cambio
+no hay garantía de servicio ni de que el dataset se mantenga igual a largo
+plazo, y va algo más rezagado que la fuente oficial.
 
 Variables usadas (`codi_variable`):
 
@@ -28,12 +29,14 @@ las lecturas de la variable 35 desde la medianoche local, así que tiene la
 misma frescura (~30-60 min) que el resto de datos. De la misma consulta se
 saca la lluvia de las últimas 24 h, que alimenta el índice de incendio.
 
-Cuando llegue la API key oficial de Meteocat, migrar a
-`https://apidocs.meteocat.gencat.cat` (mismos códigos de variable) creando
-una implementación `MeteocatStationWeatherRepository : StationWeatherRepository`
-y sustituyéndola en `MeteoX5Widget` y `WeatherUpdateWorker`. La API key debe
-guardarse en `local.properties` (no se sube a git) y exponerse vía
-`BuildConfig`, nunca hardcodeada en el código fuente.
+**Por qué no la API oficial de Meteocat**: se llegó a obtener la key de
+`apidocs.meteocat.gencat.cat`, pero se descartó porque **caduca a los 3 meses**
+y hay que volver a solicitarla — poco operativo para un widget que debe
+funcionar sin mantenimiento. Si algún día se reconsidera, bastaría con una
+implementación `MeteocatStationWeatherRepository : StationWeatherRepository`
+(mismos códigos de variable) y sustituirla en `MeteoX5Widget` y
+`WeatherUpdateWorker`; la key iría en `local.properties` (fuera de git),
+expuesta vía `BuildConfig`, nunca hardcodeada en el código fuente.
 
 ## Aviso sonoro de inicio de lluvia
 
